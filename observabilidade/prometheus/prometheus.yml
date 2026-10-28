@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alertas.yml
+
+scrape_configs:
+  # o Prometheus "puxa" (pull) as métricas do endpoint do Actuator
+  - job_name: mock-spring
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["app:8080"]
+        labels:
+          ambiente: dev
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

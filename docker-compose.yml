@@ -1,0 +1,49 @@
+# Prática 4 - stack de observabilidade: app (Actuator/Micrometer) -> Prometheus (coleta) -> Grafana (visualização)
+# Subir:   docker compose up -d --build        (porta ocupada? ex.: APP_PORT=8088 docker compose up -d)
+# App:     http://localhost:8080/jogos      Métricas: http://localhost:8080/actuator/prometheus
+# Prom.:   http://localhost:9090            Grafana:  http://localhost:3000 (admin / admin)
+services:
+  app:
+    build: .
+    container_name: mock-spring-app
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: mock-spring-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./observabilidade/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observabilidade/prometheus/alertas.yml:/etc/prometheus/alertas.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: mock-spring-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      # datasource e dashboard provisionados como código (versionados no Git)
+      - ./observabilidade/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observabilidade/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:

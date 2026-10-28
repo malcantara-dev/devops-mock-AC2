@@ -1,0 +1,40 @@
+groups:
+  - name: mock-spring
+    rules:
+      - alert: AplicacaoFora
+        expr: up{job="mock-spring"} == 0
+        for: 1m
+        labels:
+          severidade: critica
+        annotations:
+          resumo: "mock-spring não responde ao scrape há 1 minuto"
+
+      - alert: TaxaDeErro5xxAlta
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="mock-spring", status=~"5.."}[5m]))
+            / sum(rate(http_server_requests_seconds_count{job="mock-spring"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severidade: alta
+        annotations:
+          resumo: "Mais de 5% das requisições com erro 5xx"
+
+      - alert: LatenciaP95Alta
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket{job="mock-spring", uri!~"/actuator.*"}[5m]))) > 0.5
+        for: 5m
+        labels:
+          severidade: media
+        annotations:
+          resumo: "p95 da API acima de 500 ms"
+
+      - alert: HeapAlto
+        expr: |
+          sum(jvm_memory_used_bytes{job="mock-spring", area="heap"})
+            / sum(jvm_memory_max_bytes{job="mock-spring", area="heap"}) > 0.9
+        for: 10m
+        labels:
+          severidade: media
+        annotations:
+          resumo: "Heap da JVM acima de 90%"

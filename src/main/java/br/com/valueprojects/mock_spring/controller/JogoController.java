@@ -1,11 +1,14 @@
 package br.com.valueprojects.mock_spring.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.valueprojects.mock_spring.model.Jogo;
-import br.com.valueprojects.mock_spring.model.Juiz;
+import br.com.valueprojects.mock_spring.service.JogoService;
+import br.com.valueprojects.mock_spring.service.ResultadoJulgamento;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -13,33 +16,44 @@ import java.util.List;
 @RequestMapping("/jogos")
 public class JogoController {
 
-    private List<Jogo> jogos = new ArrayList<>();
-    private Juiz juiz = new Juiz();
+    // antes: lista em memória + Juiz único (estado compartilhado entre requisições)
+    private final JogoService service;
 
-    // Criar um novo jogo
-    @PostMapping("/criar")
-    public Jogo criarJogo(@RequestBody String descricao) {
-        Jogo jogo = new Jogo(descricao);
-        jogos.add(jogo);
-        return jogo;
+    public JogoController(JogoService service) {
+        this.service = service;
     }
 
-   
+    // Criar um novo jogo
+    @PostMapping
+    public ResponseEntity<Jogo> criarJogo(@RequestBody NovoJogoRequest request) {
+        Jogo jogo = service.cria(request.descricao());
+        URI local = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}").buildAndExpand(jogo.getId()).toUri();
+        return ResponseEntity.created(local).body(jogo);
+    }
+
+    // Buscar um jogo
+    @GetMapping("/{id}")
+    public Jogo buscarJogo(@PathVariable int id) {
+        return service.busca(id);
+    }
+
+    // Anotar o resultado de um participante
+    @PostMapping("/{id}/resultados")
+    public Jogo anotarResultado(@PathVariable int id, @RequestBody NovoResultadoRequest request) {
+        return service.anotaResultado(id, request.participante(), request.metrica());
+    }
+
     // Julgar um jogo
     @PostMapping("/{id}/julgar")
-    public String julgarJogo(@PathVariable int id) {
-        Jogo jogo = jogos.get(id);
-        juiz.julga(jogo);
-        double primeiroColocado = juiz.getPrimeiroColocado();
-        double ultimoColocado = juiz.getUltimoColocado();
-        return "Primeiro colocado: " + primeiroColocado + ", Último colocado: " + ultimoColocado;
+    public ResultadoJulgamento julgarJogo(@PathVariable int id) {
+        return service.julga(id);
     }
 
     // Listar todos os jogos
     @GetMapping
     public List<Jogo> listarJogos() {
-        return jogos;
+        return service.lista();
     }
 
 }
-
