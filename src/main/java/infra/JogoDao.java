@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -28,6 +29,11 @@ public class JogoDao {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	// injeção pelo construtor: permite usar outra conexão (pool, banco de teste ou mock)
+	public JogoDao(Connection conexao) {
+		this.conexao = conexao;
 	}
 
 	private Calendar data(Date date) {
@@ -97,6 +103,7 @@ public class JogoDao {
 				ResultSet rs2 = ps2.executeQuery();
 				
 				while(rs2.next()) {
+					// as colunas lidas antes ("id", "metrica") não existiam no SELECT acima
 					Participante participante = new Participante(rs2.getInt("PARTICIPANTE_ID"), rs2.getString("NOME"));
 					Resultado resultado = new Resultado(participante, rs2.getDouble("VALOR"));
 					
@@ -120,14 +127,20 @@ public class JogoDao {
 	public void atualiza(Jogo jogo) {
 		
 		try {
-			String sql = "UPDATE JOGO SET DESCRICAO=?, DATA=?, FINALIZADO=? WHERE ID = ?;";
+			String sql = "UPDATE JOGO SET DESCRICAO=?, DATA=?, FINALIZADO=?, VENCEDOR_ID=? WHERE ID = ?;";
 			PreparedStatement ps = conexao.prepareStatement(sql);
 			ps.setString(1, jogo.getDescricao());
 			ps.setDate(2, new java.sql.Date(jogo.getData().getTimeInMillis()));
 			ps.setBoolean(3, jogo.isFinalizado());
-			ps.setInt(4, jogo.getId());
+			if (jogo.getVencedor() != null) {
+				ps.setInt(4, jogo.getVencedor().getId());
+			} else {
+				ps.setNull(4, Types.INTEGER);
+			}
+			ps.setInt(5, jogo.getId());
 
 			ps.execute();
+			ps.close();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
