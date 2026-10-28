@@ -1,10 +1,14 @@
 package br.com.valueprojects.mock_spring.model;
 
+import java.util.Objects;
+
+
 public class Participante {
 
 	private int id;
 	private String nome;
-	
+
+
 	public Participante(String nome) {
 		this(0, nome);
 	}
@@ -22,7 +26,7 @@ public class Participante {
 		return nome;
 	}
 
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -41,6 +45,12 @@ public class Participante {
 			return false;
 		return true;
 	}
-	
-	
+
+	// equals sem hashCode quebra o contrato de Object (HashSet/HashMap)
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, nome);
+	}
+
+
 }

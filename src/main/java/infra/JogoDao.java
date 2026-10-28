@@ -97,8 +97,8 @@ public class JogoDao {
 				ResultSet rs2 = ps2.executeQuery();
 				
 				while(rs2.next()) {
-					Participante participante = new Participante(rs2.getInt("id"), rs2.getString("nome"));
-					Resultado resultado = new Resultado(participante, rs2.getDouble("metrica"));
+					Participante participante = new Participante(rs2.getInt("PARTICIPANTE_ID"), rs2.getString("NOME"));
+					Resultado resultado = new Resultado(participante, rs2.getDouble("VALOR"));
 					
 					jogo.anota(resultado);
 				}

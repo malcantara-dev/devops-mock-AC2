@@ -7,11 +7,9 @@ import br.com.valueprojects.mock_spring.model.Participante;
 import br.com.valueprojects.mock_spring.model.Resultado;
 
 public class CriadorDeJogo {
-	
+
 	private Jogo jogo;
-    private Calendar data;
     private boolean finaliza;
-    private int id;
 
     public CriadorDeJogo() { }
 
@@ -40,15 +38,17 @@ public class CriadorDeJogo {
     }
 
     public CriadorDeJogo comId(int id) {
-        this.jogo.setId(id); // suposição que Jogo tem um método setId(int id)
+        this.jogo.setId(id);
         return this;
     }
 
     public int getId() {
-        return jogo.getId(); // suposição que Jogo tem um método getId()
+        return jogo.getId();
     }
 
     public Jogo constroi() {
+        // antes o flag "finaliza" era ignorado e o jogo saía sempre em andamento
+        if (finaliza) jogo.finaliza();
         return jogo;
     }
 }
