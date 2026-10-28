@@ -6,24 +6,28 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
+
 public class Jogo {
 
+	private int id;
 	private String descricao;
 	private Calendar data;
+	// a ordem importa: a regra de "resultados consecutivos" depende do último anotado
 	private List<Resultado> resultados;
-	private boolean finaliza;
-	private int id;
-	
+	private boolean finalizado;
+	private Participante vencedor;
+
+
 	public Jogo(String descricao) {
 		this(descricao, Calendar.getInstance());
 	}
-	
+
 	public Jogo(String descricao, Calendar data) {
 		this.descricao = descricao;
 		this.data = data;
 		this.resultados = new ArrayList<Resultado>();
 	}
-	
+
 	public void anota(Resultado resultado) {
 		if(resultados.isEmpty() || podeTerResultado(resultado.getParticipante())) {
 			resultados.add(resultado);
@@ -59,17 +63,25 @@ public class Jogo {
 	}
 
 	public void finaliza() {
-		this.finaliza = true;
+		this.finalizado = true;
 	}
-	
+
 	public boolean isFinalizado() {
-		return finaliza;
+		return finalizado;
+	}
+
+	public void defineVencedor(Participante vencedor) {
+		this.vencedor = vencedor;
+	}
+
+	public Participante getVencedor() {
+		return vencedor;
 	}
 
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	public int getId() {
 		return id;
 	}

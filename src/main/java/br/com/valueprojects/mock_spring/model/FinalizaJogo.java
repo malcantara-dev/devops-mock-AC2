@@ -3,6 +3,7 @@ package br.com.valueprojects.mock_spring.model;
 import java.util.Calendar;
 import java.util.List;
 
+import infra.EnviadorDeSms;
 import infra.JogoDao;
 
 
@@ -11,9 +12,12 @@ public class FinalizaJogo {
 
 	private int total = 0;
 	private final JogoDao dao;
+	private final EnviadorDeSms sms;
 
-	public FinalizaJogo(JogoDao dao) {
+	// RED: recebe o SMS, mas ainda nao identifica o vencedor nem envia nada
+	public FinalizaJogo(JogoDao dao, EnviadorDeSms sms) {
 		this.dao = dao;
+		this.sms = sms;
 	}
 
 	public void finaliza() {
