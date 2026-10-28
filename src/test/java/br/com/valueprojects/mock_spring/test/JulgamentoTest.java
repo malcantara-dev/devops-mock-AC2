@@ -1,6 +1,7 @@
 package br.com.valueprojects.mock_spring.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,14 +15,14 @@ import br.com.valueprojects.mock_spring.model.Participante;
 import br.com.valueprojects.mock_spring.model.Resultado;
 
 public class JulgamentoTest {
-   
-	
+
+
 	private Juiz juiz;
 	private Participante joao;
 	private Participante pedro;
 	private Participante katia;
 	private Participante maria;
-	
+
 	@BeforeEach
 	public void criaJuiz(){
 
@@ -30,30 +31,46 @@ public class JulgamentoTest {
 		this.pedro = new Participante("Pedro");
 		this.katia = new Participante("Katia");
 		this.maria =new Participante("Maria");
-			
+
 		}
-	
+
 	@Test
 	public void deveJulgarPrimeiroEultimoColocado () {
-		
-		
+
+
 		Jogo jogo = new Jogo("Derruba barreiras");
 
 		jogo.anota(new Resultado(joao, 90.0));
 		jogo.anota(new Resultado(pedro, 91.0));
 		jogo.anota(new Resultado(katia, 93.0));
 		jogo.anota(new Resultado(maria, 94.0));
-		
-		
+
+
 		juiz.julga(jogo);
-		
+
 		double vencedorJogo = 94;
 		double ultimoColocadoJogo = 90;
-		
+
 		assertEquals(vencedorJogo, juiz.getPrimeiroColocado(),0.00001);
 		assertEquals(ultimoColocadoJogo, juiz.getUltimoColocado(),0.00001);
+		assertSame(maria, juiz.getVencedor());
 	}
-	
+
+	@Test
+	public void deveJulgarResultadosEmOrdemDecrescente() {
+
+		Jogo jogo = new CriadorDeJogo().para("Cata moedas")
+			.resultado(maria, 94.0)
+			.resultado(joao, 90.0)
+			.constroi();
+
+		juiz.julga(jogo);
+
+		assertEquals(94.0, juiz.getPrimeiroColocado(), 0.00001);
+		assertEquals(90.0, juiz.getUltimoColocado(), 0.00001);
+		assertSame(maria, juiz.getVencedor());
+	}
+
 	// antes era uma inner class sem @Nested: o JUnit 5 nunca executava este teste
 	@Nested
 	public class SemResultados {
